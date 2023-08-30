@@ -4,15 +4,13 @@ const cors = require("cors");
 require("dotenv").config();
 const Doctor = require("./models/doctor");
 const Appointment = require("./models/appointment");
-const multer = require('multer');
-const bcrypt = require('bcrypt');
-
-
+const multer = require("multer");
+const bcrypt = require("bcrypt");
 
 const app = express();
 app.use(express.json());
 app.use(cors());
-app.use('/uploads', express.static('uploads'));
+app.use("/uploads", express.static("uploads"));
 mongoose.connect(process.env.DATA_BASE);
 
 app.post("/auth/register", async (req, res) => {
@@ -36,12 +34,15 @@ app.post("/auth/login", async (req, res) => {
     const doctor = await Doctor.findOne({
       email: req.body.email,
     });
-    const passwordMatch = await bcrypt.compare(req.body.password, doctor.password);
+    const passwordMatch = await bcrypt.compare(
+      req.body.password,
+      doctor.password
+    );
     if (doctor && passwordMatch) {
       doctor.password = undefined;
-     return res.status(200).json(doctor);
+      return res.status(200).json(doctor);
     }
-    res.status(404).json({message: 'Invalid Credentials'});
+    res.status(404).json({ message: "Invalid Credentials" });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -50,13 +51,19 @@ app.post("/auth/login", async (req, res) => {
 app.post("/addAppointments/:doctorId", async (req, res) => {
   try {
     const date = await Appointment.findOne({ date: req.body.date });
-
+    const newDoctorDay = await new DoctorDays({
+      date: req.body.date,
+      doctorId: req.params.doctorId,
+      start: req.body.start,
+      end: req.body.end,
+    }).save();
     if (!date) {
       for (var i = req.body.start; i <= req.body.end; i++) {
         const appointment = await new Appointment({
           date: req.body.date,
           time: i,
           doctorId: req.params.doctorId,
+          dayId: newDoctorDay._id,
         }).save();
       }
       res.status(201).json({ message: "Success" });
@@ -129,46 +136,46 @@ app.delete("/cancelAppointment/:doctorId", async (req, res) => {
       isAvailable: false,
       time: req.body.time,
     });
-    if(appointment){
-      appointment.isAvailable=true;
-      appointment.patientName=undefined;
-      appointment.patientPhoneNumber=undefined;
-      appointment.patientEmail=undefined;
+    if (appointment) {
+      appointment.isAvailable = true;
+      appointment.patientName = undefined;
+      appointment.patientPhoneNumber = undefined;
+      appointment.patientEmail = undefined;
       await appointment.save();
-      res.status(200).json({ message:"success"})
-    }else {
-      res.status(404).json({ message:"appts not found"})
+      res.status(200).json({ message: "success" });
+    } else {
+      res.status(404).json({ message: "appts not found" });
     }
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-
-const storage= multer.diskStorage({
-  destination:(req,file,cb)=>{
-    cb(null,'uploads/')
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
   },
-  filename:(req,file,cb)=>{
-    cb(null,Date.now() + '-' + file.originalname)
-  }
-})
-
-const upload= multer({storage:storage})
-
-app.post('/uploadDoctorImage/:doctorId', upload.single('image'),async (req, res) => {
-  const doctor= await Doctor.findById({_id:req.params.doctorId})
-  
-  if (!req.file&&!doctor) {
-    return res.status(400).send('No file uploaded.');
-  }
-  doctor.imagePath = req.file.path
-  await doctor.save();
-  res.send('File uploaded successfully.');
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
 });
 
+const upload = multer({ storage: storage });
 
+app.post(
+  "/uploadDoctorImage/:doctorId",
+  upload.single("image"),
+  async (req, res) => {
+    const doctor = await Doctor.findById({ _id: req.params.doctorId });
 
+    if (!req.file && !doctor) {
+      return res.status(400).send("No file uploaded.");
+    }
+    doctor.imagePath = req.file.path;
+    await doctor.save();
+    res.send("File uploaded successfully.");
+  }
+);
 
 app.listen(3001, () => {
   console.log("listening on port 3001");
