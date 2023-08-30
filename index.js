@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
 const Doctor = require("./models/doctor");
+const DoctorDays = require("./models/doctorDays");
 const Appointment = require("./models/appointment");
 const multer = require("multer");
 const bcrypt = require("bcrypt");
