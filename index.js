@@ -75,8 +75,8 @@ app.post("/addAppointments/:doctorId", async (req, res) => {
 app.post('/addAppointmentForMonth/:doctorId', async (req, res)=> {
 try{
   for(var j=0;j<req.body.dates;j++){
-    const date = await Appointment.findOne({ date: req.body.dates[j].date });
-    if (!date) {
+    // const date = await Appointment.findOne({ date: req.body.dates[j].date });
+    // if (!date) {
       const newDoctorDay=await new DoctorDays({date: req.body.date, doctorId: req.params.doctorId , start:req.body.start, end:req.body.end}).save()
       for (var i = req.body.start; i <= req.body.end; i++) {
         const appointment = await new Appointment({
@@ -87,7 +87,7 @@ try{
         }).save();
       }
       
-    } 
+    // } 
   }
   res.status(201).json({ message: req.body.dates });
 }catch(err){
