@@ -52,13 +52,9 @@ app.post("/auth/login", async (req, res) => {
 app.post("/addAppointments/:doctorId", async (req, res) => {
   try {
     const date = await Appointment.findOne({ date: req.body.date });
-    const newDoctorDay = await new DoctorDays({
-      date: req.body.date,
-      doctorId: req.params.doctorId,
-      start: req.body.start,
-      end: req.body.end,
-    }).save();
+    
     if (!date) {
+      const newDoctorDay=await new DoctorDays({date: req.body.date, doctorId: req.params.doctorId , start:req.body.start, end:req.body.end}).save()
       for (var i = req.body.start; i <= req.body.end; i++) {
         const appointment = await new Appointment({
           date: req.body.date,
