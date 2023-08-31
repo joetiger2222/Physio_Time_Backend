@@ -77,7 +77,7 @@ try{
   for(var j=0;j<req.body.dates.length;j++){
     const date = await Appointment.findOne({ date: req.body.dates[j].date });
     if (!date) {
-      const newDoctorDay=await new DoctorDays({date: req.body.dates[j].date, doctorId: req.params.doctorId , start:req.body.start, end:req.body.end}).save()
+      const newDoctorDay=await new DoctorDays({date: req.body.dates[j].date, doctorId: req.params.doctorId , start:req.body.dates[j].start, end:req.body.dates[j].end}).save()
       for (var i = req.body.dates[j].start; i <= req.body.dates[j].end; i++) {
         const appointment = await new Appointment({
           date: req.body.dates[j].date,
