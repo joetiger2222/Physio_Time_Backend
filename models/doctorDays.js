@@ -12,7 +12,7 @@ const doctorDaysSchema=mongoose.Schema({
     end:{
         type:String,
         required:true,
-        unique:true,
+        
     },
     
 })
