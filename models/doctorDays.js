@@ -14,6 +14,10 @@ const doctorDaysSchema=mongoose.Schema({
         required:true,
         
     },
+    doctorId:{
+        type:String,
+        required:true,
+    }
     
 })
 
