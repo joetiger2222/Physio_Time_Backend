@@ -72,6 +72,29 @@ app.post("/addAppointments/:doctorId", async (req, res) => {
   }
 });
 
+app.post('/addAppointmentForMonth/:doctorId', async (req, res)=> {
+try{
+  for(var j=0;j<req.body.dates;j++){
+    const date = await Appointment.findOne({ date: req.body.dates[j].date });
+    if (!date) {
+      const newDoctorDay=await new DoctorDays({date: req.body.date, doctorId: req.params.doctorId , start:req.body.start, end:req.body.end}).save()
+      for (var i = req.body.start; i <= req.body.end; i++) {
+        const appointment = await new Appointment({
+          date: req.body.date,
+          time: i,
+          doctorId: req.params.doctorId,
+          dayId: newDoctorDay._id,
+        }).save();
+      }
+      
+    } 
+  }
+  res.status(201).json({ message: "Success" });
+}catch(err){
+  res.status(500).json({ message: err.message });
+}
+})
+
 app.get("/availbleAppointments/:doctorId/:date", async (req, res) => {
   try {
     const appointments = await Appointment.find({
