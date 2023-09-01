@@ -51,10 +51,18 @@ app.post("/auth/login", async (req, res) => {
 
 app.post("/addAppointments/:doctorId", async (req, res) => {
   try {
-    const date = await Appointment.findOne({ date: req.body.date });
-    
+    const date = await Appointment.findOne({
+      date: req.body.date,
+      doctorId: req.params.doctorId,
+    });
+
     if (!date) {
-      const newDoctorDay=await new DoctorDays({date: req.body.date, doctorId: req.params.doctorId , start:req.body.start, end:req.body.end}).save()
+      const newDoctorDay = await new DoctorDays({
+        date: req.body.date,
+        doctorId: req.params.doctorId,
+        start: req.body.start,
+        end: req.body.end,
+      }).save();
       for (var i = req.body.start; i <= req.body.end; i++) {
         const appointment = await new Appointment({
           date: req.body.date,
@@ -72,28 +80,35 @@ app.post("/addAppointments/:doctorId", async (req, res) => {
   }
 });
 
-app.post('/addAppointmentForMonth/:doctorId', async (req, res)=> {
-try{
-  for(var j=0;j<req.body.dates.length;j++){
-    const date = await Appointment.findOne({ date: req.body.dates[j].date });
-    if (!date) {
-      const newDoctorDay=await new DoctorDays({date: req.body.dates[j].date, doctorId: req.params.doctorId , start:req.body.dates[j].start, end:req.body.dates[j].end}).save()
-      for (var i = req.body.dates[j].start; i <= req.body.dates[j].end; i++) {
-        const appointment = await new Appointment({
+app.post("/addAppointmentForMonth/:doctorId", async (req, res) => {
+  try {
+    for (var j = 0; j < req.body.dates.length; j++) {
+      const date = await Appointment.findOne({
+        date: req.body.dates[j].date,
+        doctorId: req.params.doctorId,
+      });
+      if (!date) {
+        const newDoctorDay = await new DoctorDays({
           date: req.body.dates[j].date,
-          time: i,
           doctorId: req.params.doctorId,
-          dayId: newDoctorDay._id,
+          start: req.body.dates[j].start,
+          end: req.body.dates[j].end,
         }).save();
+        for (var i = req.body.dates[j].start; i <= req.body.dates[j].end; i++) {
+          const appointment = await new Appointment({
+            date: req.body.dates[j].date,
+            time: i,
+            doctorId: req.params.doctorId,
+            dayId: newDoctorDay._id,
+          }).save();
+        }
       }
-      
-    } 
+    }
+    res.status(201).json({ message: req.body.dates });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
-  res.status(201).json({ message: req.body.dates });
-}catch(err){
-  res.status(500).json({ message: err.message });
-}
-})
+});
 
 app.get("/availbleAppointments/:doctorId/:date", async (req, res) => {
   try {
@@ -151,7 +166,7 @@ app.get("/reservedAppointments/:doctorId", async (req, res) => {
 app.delete("/cancelAppointment/:appointmentId", async (req, res) => {
   try {
     const appointment = await Appointment.findOne({
-      _id: req.params.appointmentId
+      _id: req.params.appointmentId,
     });
     if (appointment) {
       appointment.isAvailable = true;
@@ -194,38 +209,24 @@ app.post(
   }
 );
 
-
-
-
-
-
-app.get('/doctorDays/:doctorId',async(req,res)=>{
-  try{
-    const doctorDays=await DoctorDays.find({doctorId: req.params.doctorId})
-    res.status(200).json(doctorDays)
-  }catch(err){
-    res.status(500).json({message: err.message});
-  }
-})
-
-
-app.delete('/doctorDays/:dayId', async (req, res) => {
+app.get("/doctorDays/:doctorId", async (req, res) => {
   try {
-    await DoctorDays.deleteOne({ _id: req.params.dayId }); // Use deleteOne() for deleting a single document
-    await Appointment.deleteMany({ dayId: req.params.dayId }); // Use deleteMany() for deleting multiple documents
-    res.status(200).json({ message: 'success' });
+    const doctorDays = await DoctorDays.find({ doctorId: req.params.doctorId });
+    res.status(200).json(doctorDays);
   } catch (err) {
-    res.status(500).json({ message: 'error' });
+    res.status(500).json({ message: err.message });
   }
 });
 
-
-
-
-
-
-
-
+app.delete("/doctorDays/:dayId", async (req, res) => {
+  try {
+    await DoctorDays.deleteOne({ _id: req.params.dayId }); // Use deleteOne() for deleting a single document
+    await Appointment.deleteMany({ dayId: req.params.dayId }); // Use deleteMany() for deleting multiple documents
+    res.status(200).json({ message: "success" });
+  } catch (err) {
+    res.status(500).json({ message: "error" });
+  }
+});
 
 app.listen(3001, () => {
   console.log("listening on port 3001");
